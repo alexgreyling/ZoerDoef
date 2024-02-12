@@ -1,28 +1,47 @@
 const { TeamsActivityHandler, CardFactory, TurnContext } = require("botbuilder");
 const { createWeatherCard } = require("./AdaptiveCardBot");
+const axios = require('axios');
 
-const apiURLOpenWeather = "https://open-weather13.p.rapidapi.com/city/Pretoria"
+
+const weatherOptions = {
+  method: 'GET',
+  url: 'https://open-weather13.p.rapidapi.com/city/Pretoria',
+  headers: {
+    'X-RapidAPI-Key': '56cfa35d48msh64026514fc8e09ap1adc3djsn37827c4cd8ce',
+    'X-RapidAPI-Host': 'open-weather13.p.rapidapi.com'
+  }
+};
 
 class TeamsBot extends TeamsActivityHandler {
   constructor() {
     super();
 
-    const weatherData = {
-      iconUrl: "https://unsplash.com/photos/a-person-swimming-in-the-ocean-near-a-cave-g6Me5mUQQIQ",
-      temperature: "Very hot",
-      condition: "Very Kak"
-    }
     this.onMessage(async (context, next) => {
       console.log("Running with Message Activity.");
       const removedMentionText = TurnContext.removeRecipientMention(context.activity);
       const txt = removedMentionText.toLowerCase().replace(/\n|\r/g, "").trim();
       CardFactory.adaptiveCard
       if (txt.toLocaleLowerCase() === "check weather") {
-        const weatherCardJSON = createWeatherCard(weatherData);
-        await context.sendActivity({ attachments: [CardFactory.adaptiveCard(weatherCardJSON)] });
+        const weatherData = await axios.request(weatherOptions)
+          .then(response => {
+            console.log(response);
+            return {
+              iconUrl: `http://openweathermap.org/img/w/${response.data.weather[0].icon}.png`,
+              temperature: Math.round((response.data.main.temp - 32) * 5 / 9),
+              condition: `${response.data.weather[0].description}`
+            };
+          })
+          .catch(error => {
+            console.error(error);
+            return null;
+          });
+        if (weatherData) {
+          const weatherCardJSON = createWeatherCard(weatherData);
+          await context.sendActivity({ attachments: [CardFactory.adaptiveCard(weatherCardJSON)] });
+        } else {
+            await await context.sendActivity("NOT WORK");
+        }
       }
-      
-      // By calling next() you ensure that the next BotHandler is run.
       await next();
     });
 
