@@ -47,7 +47,7 @@ function createWeatherCard(weatherData) {
         },
         {
           "type": "TextBlock",
-          "text": "Have a great day!",
+          "text": weatherData.comment,
           "isSubtle": true,
           "wrap": true,
           "separator": true

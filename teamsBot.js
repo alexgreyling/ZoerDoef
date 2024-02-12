@@ -25,10 +25,20 @@ class TeamsBot extends TeamsActivityHandler {
         const weatherData = await axios.request(weatherOptions)
           .then(response => {
             console.log(response);
+            let comment = "";
+
+            // If temperature is above 30 degrees, append a comment key to weatherData
+            if (response.data.weather[0].temperature > Math.round((29 - 32) * 5 / 9)){
+              comment = "Its too how to go into work, and the worst weather for a coffee";
+            }
+            else {
+              comment = "It's too cold to go into work, but the perfect weather for a coffee";
+            }
             return {
               iconUrl: `http://openweathermap.org/img/w/${response.data.weather[0].icon}.png`,
               temperature: Math.round((response.data.main.temp - 32) * 5 / 9),
-              condition: `${response.data.weather[0].description}`
+              condition: `${response.data.weather[0].description}`,
+              comment: comment
             };
           })
           .catch(error => {
