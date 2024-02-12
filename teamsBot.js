@@ -1,5 +1,6 @@
-const { TeamsActivityHandler, CardFactory, TurnContext } = require("botbuilder");
-const { createWeatherCard } = require("./AdaptiveCardBot");
+const { TeamsActivityHandler, CardFactory, TurnContext, MessageFactory } = require("botbuilder");
+const { createWeatherCard, adaptiveCardActions } = require("./AdaptiveCardBot");
+const { ActionTypes } = require('botframework-schema');
 
 const apiURLOpenWeather = "https://open-weather13.p.rapidapi.com/city/Pretoria"
 
@@ -14,14 +15,21 @@ class TeamsBot extends TeamsActivityHandler {
     }
     this.onMessage(async (context, next) => {
       console.log("Running with Message Activity.");
-      const removedMentionText = TurnContext.removeRecipientMention(context.activity);
-      const txt = removedMentionText.toLowerCase().replace(/\n|\r/g, "").trim();
-      CardFactory.adaptiveCard
-      if (txt.toLocaleLowerCase() === "check weather") {
-        const weatherCardJSON = createWeatherCard(weatherData);
-        await context.sendActivity({ attachments: [CardFactory.adaptiveCard(weatherCardJSON)] });
+      if(context.activity.text != null) {
+        const removedMentionText = TurnContext.removeRecipientMention(context.activity);
+        const txt = removedMentionText.toLowerCase().replace(/\n|\r/g, "").trim();
+        CardFactory.adaptiveCard
+        if (txt.toLocaleLowerCase() === "check weather") {
+          const weatherCardJSON = createWeatherCard(weatherData);
+          await context.sendActivity({ attachments: [CardFactory.adaptiveCard(weatherCardJSON)] });
+        }
+        if (txt === "action card"){
+          const actionCardTemplate = adaptiveCardActions();
+          const actionCard = CardFactory.adaptiveCard(actionCardTemplate)
+          await context.sendActivity({ attachments: [actionCard]});
+          await this.SendDataOnCardActions(context);
+        }
       }
-      
       // By calling next() you ensure that the next BotHandler is run.
       await next();
     });
@@ -39,6 +47,16 @@ class TeamsBot extends TeamsActivityHandler {
       await next();
     });
   }
+
+  async SendDataOnCardActions(context) {
+    if (context.activity.value != null) {
+        console.log(context.activity.value)
+        var reply = MessageFactory.text("");
+        reply.text = `Data Submitted : ${context.activity.value.name}`;
+        await context.sendActivity(MessageFactory.text(reply.text));
+    }
+  }
 }
+
 
 module.exports.TeamsBot = TeamsBot;
