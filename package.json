@@ -2,7 +2,7 @@
     "name": "zoerdoef",
     "version": "1.0.0",
     "msteams": {
-      "teamsAppId": null
+        "teamsAppId": null
     },
     "description": "Microsoft Teams Toolkit hello world Bot sample",
     "engines": {
@@ -21,6 +21,7 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
+        "@microsoft/microsoft-graph-client": "^3.0.7",
         "botbuilder": "^4.20.0",
         "restify": "^10.0.0"
     },
